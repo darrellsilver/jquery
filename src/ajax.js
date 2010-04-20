@@ -180,6 +180,11 @@ jQuery.extend({
 		// so we use the ActiveXObject when it is available
 		// This function can be overriden by calling jQuery.ajaxSetup
 
+            //
+            // We overwrite XMLHttpRequest to keep on-record ajax requests 
+            // from going out to the wrong place. That's good times, except
+            // for our own requests: we want to let those through.
+            //
 
 
 		xhr: window.XMLHttpRequest && (window.location.protocol !== "file:" || !window.ActiveXObject) ?
