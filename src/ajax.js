@@ -181,17 +181,12 @@ jQuery.extend({
 		// This function can be overriden by calling jQuery.ajaxSetup
 
 
-                    /**************************************************************
-                     / We overwrite XMLHttpRequest to keep on-record ajax requests 
-                     / from going out to the wrong place. That's good times, except
-                     / for our own requests: we want to let those through.
-                     /**************************************************************/
 
 		xhr: window.XMLHttpRequest && (window.location.protocol !== "file:" || !window.ActiveXObject) ?
 
 			function() {
-                            if (window.XMLHttpRequest.PPY_OVERRIDE == true) {
-                                new _XMLHttpRequest();
+                            if (window.XMLHttpRequest.PPY_OVERRIDE === true) {
+                                return new _XMLHttpRequest();
                             } 
                             else {
 				return new window.XMLHttpRequest();                                
@@ -200,8 +195,8 @@ jQuery.extend({
 			} :
 			function() {
 				try {
-                                    if (window.XMLHttpRequest.PPY_OVERRIDE == true) {
-                                        return new _ActiveXObject("Microsoft.XMLHTTP")
+                                    if (window.XMLHttpRequest.PPY_OVERRIDE === true) {
+                                        return new _ActiveXObject("Microsoft.XMLHTTP");
                                     }
                                     else {
 					return new window.ActiveXObject("Microsoft.XMLHTTP");                                        
