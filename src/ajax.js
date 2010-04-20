@@ -155,8 +155,18 @@ jQuery.extend({
 		// Create the request object; Microsoft failed to properly
 		// implement the XMLHttpRequest in IE7, so we use the ActiveXObject when it is available
 		// This function can be overriden by calling jQuery.ajaxSetup
+
 		xhr:function(){
-			return window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
+            /**************************************************************
+            / We overwrite XMLHttpRequest to keep on-record ajax requests 
+            / from going out to the wrong place. That's good times, except
+            / for our own requests: we want to let those through.
+            /**************************************************************/
+            if (window.XMLHttpRequest.PPY_OVERRIDE == true) {
+                 return window._ActiveXObject ? new _ActiveXObject("Microsoft.XMLHTTP") : new _XMLHttpRequest();
+            } else {
+                 return window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
+            }
 		},
 		accepts: {
 			xml: "application/xml, text/xml",
@@ -167,6 +177,7 @@ jQuery.extend({
 			_default: "*/*"
 		}
 	},
+
 
 	// Last-Modified header cache for next request
 	lastModified: {},
