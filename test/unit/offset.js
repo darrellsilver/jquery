@@ -1,7 +1,49 @@
 module("offset");
 
+var supportsScroll = false;
+
+testoffset("absolute"/* in iframe */, function($, iframe) {
+	expect(4);
+	
+	var doc = iframe.document, tests;
+	
+	// force a scroll value on the main window
+	// this insures that the results will be wrong
+	// if the offset method is using the scroll offset
+	// of the parent window
+	var forceScroll = jQuery('<div>', { width: 2000, height: 2000 }).appendTo('body');
+	window.scrollTo(200, 200);
+
+	if ( document.documentElement.scrollTop || document.body.scrollTop ) {
+		supportsScroll = true;
+	}
+
+	window.scrollTo(1, 1);
+	
+	// get offset
+	tests = [
+		{ id: '#absolute-1', top: 1, left: 1 }
+	];
+	jQuery.each( tests, function() {
+		equals( jQuery( this.id, doc ).offset().top,  this.top,  "jQuery('" + this.id + "').offset().top" );
+		equals( jQuery( this.id, doc ).offset().left, this.left, "jQuery('" + this.id + "').offset().left" );
+	});
+
+
+	// get position
+	tests = [
+		{ id: '#absolute-1', top: 0, left: 0 }
+	];
+	jQuery.each( tests, function() {
+		equals( jQuery( this.id, doc ).position().top,  this.top,  "jQuery('" + this.id + "').position().top" );
+		equals( jQuery( this.id, doc ).position().left, this.left, "jQuery('" + this.id + "').position().left" );
+	});
+	
+	forceScroll.remove();
+});
+
 testoffset("absolute", function( jQuery ) {
-	expect(144);
+	expect(178);
 	
 	// get offset tests
 	var tests = [
@@ -27,6 +69,11 @@ testoffset("absolute", function( jQuery ) {
 		equals( jQuery( this.id ).position().top,  this.top,  "jQuery('" + this.id + "').position().top" );
 		equals( jQuery( this.id ).position().left, this.left, "jQuery('" + this.id + "').position().left" );
 	});
+	
+	// test #5781
+	var offset = jQuery( '#positionTest' ).offset({ top: 10, left: 10 }).offset();
+	equals( offset.top,  10, "Setting offset on element with position absolute but 'auto' values." )
+	equals( offset.left, 10, "Setting offset on element with position absolute but 'auto' values." )
 	
 	
 	// set offset
@@ -60,8 +107,14 @@ testoffset("absolute", function( jQuery ) {
 			equals( val.left, left, "Verify incoming top position." );
 			return { top: top + 1, left: left + 1 };
 		});
-		equals( jQuery( this.id ).offset().top,  this.top + 1,  "jQuery('" + this.id + "').offset({ top: "  + this.top  + " })" );
-		equals( jQuery( this.id ).offset().left, this.left + 1, "jQuery('" + this.id + "').offset({ left: " + this.left + " })" );
+		equals( jQuery( this.id ).offset().top,  this.top  + 1, "jQuery('" + this.id + "').offset({ top: "  + (this.top  + 1) + " })" );
+		equals( jQuery( this.id ).offset().left, this.left + 1, "jQuery('" + this.id + "').offset({ left: " + (this.left + 1) + " })" );
+		
+		jQuery( this.id )
+			.offset({ left: this.left + 2 })
+			.offset({ top:  this.top  + 2 });
+		equals( jQuery( this.id ).offset().top,  this.top  + 2, "Setting one property at a time." );
+		equals( jQuery( this.id ).offset().left, this.left + 2, "Setting one property at a time." );
 		
 		jQuery( this.id ).offset({ top: this.top, left: this.left, using: function( props ) {
 			jQuery( this ).css({
@@ -78,7 +131,7 @@ testoffset("relative", function( jQuery ) {
 	expect(60);
 	
 	// IE is collapsing the top margin of 1px
-	var ie = jQuery.browser.msie && parseInt( jQuery.browser.version ) < 8;
+	var ie = jQuery.browser.msie && parseInt( jQuery.browser.version, 10 ) < 8;
 	
 	// get offset
 	var tests = [
@@ -139,7 +192,7 @@ testoffset("static", function( jQuery ) {
 	expect(80);
 	
 	// IE is collapsing the top margin of 1px
-	var ie = jQuery.browser.msie && parseInt( jQuery.browser.version ) < 8;
+	var ie = jQuery.browser.msie && parseInt( jQuery.browser.version, 10 ) < 8;
 	
 	// get offset
 	var tests = [
@@ -211,8 +264,13 @@ testoffset("fixed", function( jQuery ) {
 		{ id: '#fixed-1', top: 1001, left: 1001 },
 		{ id: '#fixed-2', top: 1021, left: 1021 }
 	];
+
 	jQuery.each( tests, function() {
-		if ( jQuery.offset.supportsFixedPosition ) {
+		if ( !supportsScroll ) {
+			ok( true, "Browser doesn't support scroll position." );
+			ok( true, "Browser doesn't support scroll position." );
+
+		} else if ( jQuery.offset.supportsFixedPosition ) {
 			equals( jQuery( this.id ).offset().top,  this.top,  "jQuery('" + this.id + "').offset().top" );
 			equals( jQuery( this.id ).offset().left, this.left, "jQuery('" + this.id + "').offset().left" );
 		} else {
@@ -266,9 +324,9 @@ testoffset("table", function( jQuery ) {
 });
 
 testoffset("scroll", function( jQuery, win ) {
-	expect(12);
+	expect(16);
 	
-	var ie = jQuery.browser.msie && parseInt( jQuery.browser.version ) < 8;
+	var ie = jQuery.browser.msie && parseInt( jQuery.browser.version, 10 ) < 8;
 	
 	// IE is collapsing the top margin of 1px
 	equals( jQuery('#scroll-1').offset().top, ie ? 6 : 7, "jQuery('#scroll-1').offset().top" );
@@ -290,12 +348,28 @@ testoffset("scroll", function( jQuery, win ) {
 	// equals( jQuery('body').scrollLeft(), 0, "jQuery('body').scrollTop()" );
 	
 	win.name = "test";
+
+	if ( !supportsScroll ) {
+		ok( true, "Browser doesn't support scroll position." );
+		ok( true, "Browser doesn't support scroll position." );
+
+		ok( true, "Browser doesn't support scroll position." );
+		ok( true, "Browser doesn't support scroll position." );
+	} else {
+		equals( jQuery(win).scrollTop(), 1000, "jQuery(window).scrollTop()" );
+		equals( jQuery(win).scrollLeft(), 1000, "jQuery(window).scrollLeft()" );
 	
-	equals( jQuery(win).scrollTop(), 1000, "jQuery(window).scrollTop()" );
-	equals( jQuery(win).scrollLeft(), 1000, "jQuery(window).scrollLeft()" );
+		equals( jQuery(win.document).scrollTop(), 1000, "jQuery(document).scrollTop()" );
+		equals( jQuery(win.document).scrollLeft(), 1000, "jQuery(document).scrollLeft()" );
+	}
 	
-	equals( jQuery(win.document).scrollTop(), 1000, "jQuery(document).scrollTop()" );
-	equals( jQuery(win.document).scrollLeft(), 1000, "jQuery(document).scrollLeft()" );
+	// test jQuery using parent window/document
+	// jQuery reference here is in the iframe
+	window.scrollTo(0,0);
+	equals( jQuery(window).scrollTop(), 0, "jQuery(window).scrollTop() other window" );
+	equals( jQuery(window).scrollLeft(), 0, "jQuery(window).scrollLeft() other window" );
+	equals( jQuery(document).scrollTop(), 0, "jQuery(window).scrollTop() other document" );
+	equals( jQuery(document).scrollLeft(), 0, "jQuery(window).scrollLeft() other document" );
 });
 
 testoffset("body", function( jQuery ) {
@@ -306,8 +380,8 @@ testoffset("body", function( jQuery ) {
 });
 
 test("Chaining offset(coords) returns jQuery object", function() {
-  expect(2);
-  var coords = { top:  1, left:  1 };
+	expect(2);
+	var coords = { top:  1, left:  1 };
 	equals( jQuery("#absolute-1").offset(coords).selector, "#absolute-1", "offset(coords) returns jQuery object" );
 	equals( jQuery("#non-existent").offset(coords).selector, "#non-existent", "offset(coords) with empty jQuery set returns jQuery object" );
 });
@@ -362,7 +436,7 @@ function testoffset(name, fn) {
 	});
 	
 	function loadFixture() {
-		var src = './data/offset/' + name + '.html?' + parseInt( Math.random()*1000 ),
+		var src = './data/offset/' + name + '.html?' + parseInt( Math.random()*1000, 10 ),
 			iframe = jQuery('<iframe />').css({
 				width: 500, height: 500, position: 'absolute', top: -600, left: -600, visiblity: 'hidden'
 			}).appendTo('body')[0];
