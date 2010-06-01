@@ -300,9 +300,10 @@ jQuery.extend({
 		// Open the socket
 		// Passing null username, generates a login popup on Opera (#2865)
 		if( s.username )
-			xhr.open(type, s.url, s.async, s.username, s.password);
+                        // we send in the last parameter of true so that our overridden XMLHttpRequest knows to not mangle the urls
+			xhr.open(type, s.url, s.async, s.username, s.password, true);
 		else
-			xhr.open(type, s.url, s.async);
+			xhr.open(type, s.url, s.async, true);
 
 		// Need an extra try/catch for cross domain requests in Firefox 3
 		try {
@@ -550,3 +551,4 @@ jQuery.extend({
 	}
 
 });
+
