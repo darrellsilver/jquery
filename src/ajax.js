@@ -158,11 +158,18 @@ jQuery.extend({
 
 		xhr:function(){
             /**************************************************************
-            / We overwrite XMLHttpRequest to keep on-record ajax requests 
-            / from going out to the wrong place. That's good times, except
-            / for our own requests: we want to let those through.
+              PERPETUALLY We overwrite XMLHttpRequest to keep
+            on-record ajax requests from going out to the wrong
+            place. That's good times, except for our own requests: we
+            want to let those through.
             /**************************************************************/
-            if (window.XMLHttpRequest.PPY_OVERRIDE == true) {
+                    if ((typeof window.XMLHttpRequest != "undefined" &&
+                        window.XMLHttpRequest.PPY_OVERRIDE ) ||
+                        (typeof window.ActiveXObject != "undefined" &&
+                         window.ActiveXObject.PPY_OVERRIDE ) ) {
+
+      //if (window.XMLHttpRequest.PPY_OVERRIDE == true) {
+          
                  return window._ActiveXObject ? new _ActiveXObject("Microsoft.XMLHTTP") : new _XMLHttpRequest();
             } else {
                  return window.ActiveXObject ? new ActiveXObject("Microsoft.XMLHTTP") : new XMLHttpRequest();
